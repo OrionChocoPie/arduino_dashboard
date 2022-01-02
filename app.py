@@ -1,4 +1,5 @@
 import dash
+import dash_auth
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
@@ -6,13 +7,15 @@ import plotly.express as px
 import numpy as np
 import pandas as pd
 
+VALID_USERNAME_PASSWORD_PAIRS = {"mansur": "190808"}
+SECONDS_UPDATE_PERIOD = 60
+MEAN_PERIOD = 5
+
 app = dash.Dash(
     __name__,
     meta_tags=[{"name": "viewport", "content": "width=device-width"}],
 )
-
-SECONDS_UPDATE_PERIOD = 2
-MEAN_PERIOD = 5
+# auth = dash_auth.BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
 
 app.layout = html.Div(
     [
@@ -23,12 +26,12 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.Img(
-                            src=app.get_asset_url("dash-logo.png"),
+                            src=app.get_asset_url("logo.png"),
                             id="plotly-image",
                             style={
-                                "height": "60px",
+                                "margin-top": "25px",
+                                "height": "100px",
                                 "width": "auto",
-                                "margin-bottom": "25px",
                             },
                         )
                     ],

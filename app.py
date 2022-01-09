@@ -7,6 +7,8 @@ import plotly.express as px
 import numpy as np
 import pandas as pd
 
+from db import Connector
+
 VALID_USERNAME_PASSWORD_PAIRS = {"mansur": "190808"}
 SECONDS_UPDATE_PERIOD = 60
 MEAN_PERIOD = 5
@@ -17,6 +19,8 @@ app = dash.Dash(
 )
 server = app.server
 auth = dash_auth.BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
+
+connector = Connector()
 
 app.layout = html.Div(
     [
@@ -79,17 +83,17 @@ app.layout = html.Div(
                             className="mini_container",
                         ),
                         html.Div(
-                            [html.H6(id="humidity"), html.P("Current humidity")],
-                            id="gas",
-                            className="mini_container",
-                        ),
-                        html.Div(
                             [html.H6(id="illumination"), html.P("Current illumination")],
                             id="oil",
                             className="mini_container",
                         ),
                         html.Div(
-                            [html.H6(id="something"), html.P("Current something")],
+                            [html.H6(id="ground_humidity"), html.P("Current ground humidity")],
+                            id="gas",
+                            className="mini_container",
+                        ),
+                        html.Div(
+                            [html.H6(id="air_humidity"), html.P("Current air humidity")],
                             id="water",
                             className="mini_container",
                         ),
@@ -107,7 +111,7 @@ app.layout = html.Div(
                     className="pretty_container six columns",
                 ),
                 html.Div(
-                    [dcc.Graph(id="humidity_graph")],
+                    [dcc.Graph(id="illumination_graph")],
                     className="pretty_container six columns",
                 ),
             ],
@@ -116,11 +120,11 @@ app.layout = html.Div(
         html.Div(
             [
                 html.Div(
-                    [dcc.Graph(id="illumination_graph")],
+                    [dcc.Graph(id="ground_humidity_graph")],
                     className="pretty_container six columns",
                 ),
                 html.Div(
-                    [dcc.Graph(id="something_graph")],
+                    [dcc.Graph(id="air_humidity_graph")],
                     className="pretty_container six columns",
                 ),
             ],
@@ -168,36 +172,27 @@ def create_graph(title, time_indexes, values):
 @app.callback(
     [
         Output("temperature", "children"),
-        Output("humidity", "children"),
         Output("illumination", "children"),
-        Output("something", "children"),
+        Output("ground_humidity", "children"),
+        Output("air_humidity", "children"),
         Output("temperature_graph", "figure"),
-        Output("humidity_graph", "figure"),
         Output("illumination_graph", "figure"),
-        Output("something_graph", "figure"),
+        Output("ground_humidity_graph", "figure"),
+        Output("air_humidity_graph", "figure"),
     ],
     Input("interval-component", "n_intervals"),
 )
 def update_info(n):
     # update data
-    df = pd.DataFrame(
-        {
-            "Time": pd.date_range("now", periods=200, freq="1min"),
-            "Temperature": np.random.rand(200),
-            "Humidity": np.random.rand(200),
-            "Illumination": np.random.rand(200),
-            "Something": np.random.rand(200),
-        },
-    )
-
-    df = df.sort_values("Time", ascending=False)
+    df = connector.select_values()
+    df = df.sort_values("time", ascending=False)
 
     # update dash
-    columns = ["Temperature", "Humidity", "Illumination", "Something"]
+    columns = ["temperature", "illumination", "ground_humidity", "air_humidity"]
 
     means = [df.loc[:MEAN_PERIOD, columns].mean() for columns in columns]
     means = [round(x, 2) for x in means]
-    graphs = [create_graph(column, df["Time"], df[column]) for column in columns]
+    graphs = [create_graph(column, df["time"], df[column]) for column in columns]
 
     return [*means, *graphs]
 

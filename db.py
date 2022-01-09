@@ -14,7 +14,7 @@ class Connector:
         SELECT * FROM sensors
     """
 
-    def select_predict(self) -> None:
+    def select_values(self) -> None:
         connection = psycopg2.connect(
             user=self.USER,
             password=self.PASSWORD,
@@ -26,27 +26,6 @@ class Connector:
         try:
             with connection:
                 df = sqlio.read_sql_query(self.select_values_query, connection)
-
-                return df
-        finally:
-            connection.close()
-
-    def select_means(self) -> None:
-        connection = psycopg2.connect(
-            user=self.USER,
-            password=self.PASSWORD,
-            host=self.HOST,
-            port=self.PORT,
-            database=self.DBNAME,
-        )
-
-        try:
-            with connection:
-                df = sqlio.read_sql_query(self.select_values_query, connection)
-                df = df[df.created_time == df.created_time.max()]
-                df["IoU"] = 0.03
-                df = df[["IoU", "ap", "precision", "recall"]]
-                df = df.mean()
 
                 return df
         finally:

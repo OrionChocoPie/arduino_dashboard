@@ -1,14 +1,18 @@
+import os
+
 import psycopg2
 from pandas import DataFrame
 import pandas.io.sql as sqlio
 
+api_key = os.getenv("API_KEY", "optional-default")
+
 
 class Connector:
-    DBNAME = "postgres"
-    USER = "postgres"
-    PASSWORD = "wvHjfv6mN3KXUZZX"
-    HOST = "database-1.cr2r5wsggaq4.us-east-2.rds.amazonaws.com"
-    PORT = "5432"
+    DBNAME = os.getenv("DBNAME", None)
+    USER = os.getenv("USER", None)
+    PASSWORD = os.getenv("PASSWORD", None)
+    HOST = os.getenv("HOST", None)
+    PORT = os.getenv("PORT", None)
 
     select_values_query = """
         SELECT * FROM sensors

@@ -9,6 +9,10 @@ import pandas as pd
 
 from db import Connector
 
+import os
+
+print(os.environ)
+
 VALID_USERNAME_PASSWORD_PAIRS = {"mansur": "190808"}
 SECONDS_UPDATE_PERIOD = 60
 MEAN_PERIOD = 5

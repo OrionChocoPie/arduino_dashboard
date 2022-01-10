@@ -8,11 +8,11 @@ api_key = os.getenv("API_KEY", "optional-default")
 
 
 class Connector:
-    DBNAME = os.getenv("DBNAME", None)
-    USER = os.getenv("USER", None)
-    PASSWORD = os.getenv("PASSWORD", None)
-    HOST = os.getenv("HOST", None)
-    PORT = os.getenv("PORT", None)
+    DBNAME = os.getenv("DBNAME")
+    USER = os.getenv("USER")
+    PASSWORD = os.getenv("PASSWORD")
+    HOST = os.getenv("HOST")
+    PORT = os.getenv("PORT")
 
     select_values_query = """
         SELECT * FROM sensors

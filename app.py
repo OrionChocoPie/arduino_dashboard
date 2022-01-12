@@ -1,3 +1,5 @@
+import os
+
 import dash
 import dash_auth
 from dash import dcc
@@ -6,13 +8,11 @@ from dash.dependencies import Input, Output
 
 from db import Connector
 
-import os
 
-print(os.environ)
-
-VALID_USERNAME_PASSWORD_PAIRS = {"mansur": "190808"}
+VALID_USERNAME_PASSWORD_PAIRS = {os.getenv("AUTH_USER"): os.getenv("AUTH_PASSWORD")}
 SECONDS_UPDATE_PERIOD = 60
-MEAN_PERIOD = 5
+LAST_ELEMS = 100
+MEAN_PERIOD = 1
 
 app = dash.Dash(
     __name__,
@@ -79,57 +79,82 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.Div(
-                            [html.H6(id="temperature"), html.P("Current temperature")],
+                            [html.H6(id="temperature"), html.P("Текущая температура, ℃")],
                             id="wells",
                             className="mini_container",
                         ),
                         html.Div(
-                            [html.H6(id="illumination"), html.P("Current illumination")],
+                            [html.H6(id="illumination"), html.P("Текущая освещенность, %")],
                             id="oil",
                             className="mini_container",
                         ),
+                    ],
+                    className="row container-display",
+                ),
+            ],
+        ),
+        html.Div(
+            [
+                html.Div(
+                    [
                         html.Div(
-                            [html.H6(id="ground_humidity"), html.P("Current ground humidity")],
+                            [html.H6(id="ground_humidity"), html.P("Текущая влажность почвы, %")],
                             id="gas",
                             className="mini_container",
                         ),
                         html.Div(
-                            [html.H6(id="air_humidity"), html.P("Current air humidity")],
+                            [html.H6(id="air_humidity"), html.P("Текущая влажность воздуха, %")],
                             id="water",
                             className="mini_container",
                         ),
                     ],
-                    id="info-container",
                     className="row container-display",
                 ),
             ],
-            id="right-column",
         ),
         html.Div(
             [
-                html.Div(
-                    [dcc.Graph(id="temperature_graph")],
-                    className="pretty_container six columns",
-                ),
-                html.Div(
-                    [dcc.Graph(id="illumination_graph")],
-                    className="pretty_container six columns",
-                ),
+                dcc.Graph(
+                    id="temperature_graph",
+                    config={
+                        "displayModeBar": False,
+                    },
+                )
             ],
-            className="row flex-display",
+            className="pretty_container",
         ),
         html.Div(
             [
-                html.Div(
-                    [dcc.Graph(id="ground_humidity_graph")],
-                    className="pretty_container six columns",
-                ),
-                html.Div(
-                    [dcc.Graph(id="air_humidity_graph")],
-                    className="pretty_container six columns",
-                ),
+                dcc.Graph(
+                    id="illumination_graph",
+                    config={
+                        "displayModeBar": False,
+                    },
+                )
             ],
-            className="row flex-display",
+            className="pretty_container",
+        ),
+        html.Div(
+            [
+                dcc.Graph(
+                    id="ground_humidity_graph",
+                    config={
+                        "displayModeBar": False,
+                    },
+                )
+            ],
+            className="pretty_container",
+        ),
+        html.Div(
+            [
+                dcc.Graph(
+                    id="air_humidity_graph",
+                    config={
+                        "displayModeBar": False,
+                    },
+                )
+            ],
+            className="pretty_container",
         ),
         dcc.Interval(
             id="interval-component",
@@ -150,6 +175,9 @@ def create_graph(title, time_indexes, values):
         paper_bgcolor="#F9F9F9",
         legend=dict(font=dict(size=10), orientation="h"),
         title=title,
+        showlegend=False,
+        xaxis={"fixedrange": True},
+        yaxis={"fixedrange": True},
     )
 
     values = [round(x, 2) for x in values]
@@ -187,9 +215,11 @@ def update_info(n):
     # update data
     df = connector.select_values()
     df = df.sort_values("time", ascending=False)
+    df = df.iloc[:LAST_ELEMS]
 
     # update dash
-    columns = ["temperature", "illumination", "ground_humidity", "air_humidity"]
+    df.columns = ["time", "Температура, ℃", "Освещенность, %", "Влажность почвы, %", "Влажность воздуха, %"]
+    columns = df.columns[1:]
 
     means = [df.loc[:MEAN_PERIOD, columns].mean() for columns in columns]
     means = [round(x, 2) for x in means]

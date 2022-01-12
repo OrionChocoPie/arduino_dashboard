@@ -4,8 +4,6 @@ import psycopg2
 from pandas import DataFrame
 import pandas.io.sql as sqlio
 
-api_key = os.getenv("API_KEY", "optional-default")
-
 
 class Connector:
     DBNAME = os.getenv("DBNAME")
